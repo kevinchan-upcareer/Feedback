@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Game — 玩家意見反饋總覽</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --card-border:    rgba(11,11,11,0.10);
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --seg-gap:        #fcfcfb;
+
+    --red-strong:     #e34948;
+    --red-light:      #f0b6b5;
+    --gray-neutral:   #c9c8c2;
+    --blue-light:     #a9c9ef;
+    --blue-strong:    #2a78d6;
+
+    --cat-blue:       #2a78d6;
+    --cat-orange:     #eb6834;
+    --cat-aqua:       #1baf7a;
+
+    --good:           #006300;
+    --warn-bg:        #fff4e0;
+    --warn-text:      #8a5a00;
+    --critical-bg:    #fdecec;
+    --critical-text:  #a3201f;
+    --status-good:    #0ca30c;
+    --status-warn:    #b9790a;
+    --status-serious: #c1592f;
+    --status-critical:#d03b3b;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --card-border:    rgba(255,255,255,0.10);
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --seg-gap:        #1a1a19;
+
+    --red-strong:     #e66767;
+    --red-light:      #8a5150;
+    --gray-neutral:   #55544f;
+    --blue-light:     #3f5f86;
+    --blue-strong:    #3987e5;
+
+    --cat-blue:       #3987e5;
+    --cat-orange:     #d95926;
+    --cat-aqua:       #199e70;
+
+    --good:           #0ca30c;
+    --warn-bg:        #2a2110;
+    --warn-text:      #f0b84f;
+    --critical-bg:    #2a1414;
+    --critical-text:  #f19a99;
+    --status-good:    #0ca30c;
+    --status-warn:    #fab219;
+    --status-serious: #ec835a;
+    --status-critical:#e66767;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: "PingFang HK", "Microsoft JhengHei", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  header.top {
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    margin-bottom: 22px;
+  }
+  h1.title { font-size: 26px; margin: 0 0 4px; font-weight: 700; }
+  .subtitle { font-size: 15px; color: var(--text-secondary); margin: 0 0 2px; }
+  .meta { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
+  .theme-btn {
+    border: 1px solid var(--card-border); background: var(--surface-1); color: var(--text-primary);
+    border-radius: 8px; padding: 7px 12px; font-size: 13px; cursor: pointer; flex: 0 0 auto;
+  }
+
+  h2.section-title {
+    font-size: 19px; margin: 40px 0 4px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--grid);
+  }
+  p.section-lead { color: var(--text-secondary); font-size: 14px; margin: 8px 0 18px; }
+
+  /* KPI tiles */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  @media (max-width: 720px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  .kpi-tile {
+    background: var(--surface-1); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 16px 16px 14px;
+  }
+  .kpi-value { font-size: 30px; font-weight: 700; line-height: 1.1; }
+  .kpi-label { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; }
+  .kpi-flag {
+    display:inline-flex; align-items:center; gap:5px; margin-top: 8px;
+    font-size: 11.5px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .kpi-flag.watch { background: var(--warn-bg); color: var(--warn-text); }
+  .kpi-flag.good  { background: var(--critical-bg); color: var(--good); background: transparent; padding-left:0; }
+
+  /* Priority action table */
+  .prio-badge {
+    display:inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px;
+    color: #ffffff; white-space: nowrap;
+  }
+  .prio-high { background: var(--status-critical); }
+  .prio-med  { background: var(--status-warn); color:#3a2900; }
+  .prio-low  { background: var(--text-muted); }
+  table.actions {
+    width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 10px;
+  }
+  table.actions th {
+    text-align: left; font-size: 11.5px; letter-spacing: .03em;
+    color: var(--text-muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--grid);
+  }
+  table.actions td {
+    padding: 10px 10px; border-bottom: 1px solid var(--grid); vertical-align: top;
+  }
+  table.actions tr:last-child td { border-bottom: none; }
+  .action-item { font-weight: 600; }
+  .action-evidence { color: var(--text-secondary); font-size: 12.8px; margin-top: 3px; }
+  .action-source { color: var(--text-muted); font-size: 11.5px; }
+
+  /* Chart cards */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .chart-grid { grid-template-columns: 1fr; } }
+  figure.chart-card {
+    background: var(--surface-1); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 14px 16px 12px; margin: 0;
+  }
+  figure.chart-card.wide { grid-column: 1 / -1; }
+  .chart-title { font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
+  .chart-n { font-size: 11.5px; color: var(--text-muted); margin-bottom: 10px; }
+  .stackbar { display:flex; height: 24px; width: 100%; border-radius: 5px; overflow: hidden; }
+  .stackbar .seg {
+    height: 100%; position: relative; cursor: default;
+    border-right: 2px solid var(--seg-gap);
+  }
+  .stackbar .seg:last-child { border-right: none; }
+  .seg-neg2 { background: var(--red-strong); }
+  .seg-neg1 { background: var(--red-light); }
+  .seg-neu  { background: var(--gray-neutral); }
+  .seg-pos1 { background: var(--blue-light); }
+  .seg-pos2 { background: var(--blue-strong); }
+  .seg-catb { background: var(--cat-blue); }
+  .seg-cato { background: var(--cat-orange); }
+  .seg-cata { background: var(--cat-aqua); }
+  .seg-label {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.25);
+    pointer-events:none;
+  }
+  .legend { display:flex; flex-wrap:wrap; gap: 8px 14px; margin-top: 10px; font-size: 11.8px; color: var(--text-secondary); }
+  .legend-item { display:flex; align-items:center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+
+  .tooltip {
+    position: fixed; pointer-events:none; background: var(--text-primary); color: var(--surface-1);
+    font-size: 12px; padding: 5px 9px; border-radius: 6px; z-index: 50; opacity:0; transition: opacity .08s;
+    max-width: 240px;
+  }
+
+  .magbar-row { display:flex; align-items:center; gap: 10px; margin-bottom: 9px; }
+  .magbar-label { width: 42%; font-size: 12.5px; color: var(--text-secondary); flex: 0 0 auto; }
+  .magbar-track { flex:1; background: var(--grid); border-radius: 4px; height: 16px; position:relative; }
+  .magbar-fill { background: var(--blue-strong); height: 100%; border-radius: 4px; }
+  .magbar-val { width: 50px; text-align:right; font-size: 12.5px; font-weight:700; flex:0 0 auto; }
+
+  details.tbl-toggle { margin-top: 10px; }
+  details.tbl-toggle summary {
+    cursor: pointer; font-size: 11.5px; color: var(--text-muted); user-select: none;
+  }
+  details.tbl-toggle table { width:100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  details.tbl-toggle td { padding: 3px 4px; border-bottom: 1px solid var(--grid); }
+
+  /* Appendix / prose */
+  .appendix-divider {
+    margin: 56px 0 8px; text-align:center; color: var(--text-muted); font-size: 12px;
+    letter-spacing: .05em;
+  }
+  h2.appx-h1 { font-size: 22px; margin: 34px 0 10px; color: var(--text-primary); }
+  h3.appx-h2 { font-size: 16px; margin: 22px 0 8px; color: var(--text-primary); }
+  .prose p { font-size: 14px; color: var(--text-primary); margin: 0 0 12px; }
+  .prose .lead { color: var(--text-secondary); font-style: italic; font-size: 13px; }
+  .prose ul { margin: 0 0 14px; padding-left: 20px; }
+  .prose li { font-size: 13.5px; margin-bottom: 8px; }
+  .prose table { width:100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0 16px; }
+  .prose th { background: #1F3B57; color:#fff; text-align:left; padding:7px 9px; }
+  .prose td { padding: 6px 9px; border-bottom: 1px solid var(--grid); }
+  .prose tr:nth-child(even) td { background: rgba(128,128,128,0.06); }
+  footer.report-footer { margin-top: 50px; font-size: 11.5px; color: var(--text-muted); text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1 class="title">Farm Game — 玩家意見反饋總覽</h1>
+      <p class="subtitle">Google 意見調查（41 份回覆）+ 遊戲內問卷（42 份回覆）</p>
+      <p class="meta">為 Kevin Chan 準備 · UpCareer · 數據截至 2026 年 7 月 31 日 · 報告日期 2026 年 8 月 3 日</p>
+    </div>
+    <button class="theme-btn" id="themeToggle" type="button">🌙 深色模式</button>
+  </header>
+
+  <p class="section-lead" style="margin-top:-6px;">
+    先睇重點：下方為圖表及優先行動建議。完整的書面分析（包括玩家原文意見及完整數據表）放在文件下方作為參考附錄，供有興趣深入了解的人士查閱。
+  </p>
+
+  <!-- KPI ROW -->
+  <h2 class="section-title">重點概覽</h2>
+  <div class="kpi-grid">
+    <div class="kpi-tile">
+      <div class="kpi-value">93%</div>
+      <div class="kpi-label">認為遊戲情境與實際工作相關</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-value">90%</div>
+      <div class="kpi-label">表示遊戲有助了解該工作職責</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-value">69%</div>
+      <div class="kpi-label">遊戲後對從事該工作更有信心</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-value">74%</div>
+      <div class="kpi-label">願意向他人推薦此遊戲</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-value">36%</div>
+      <div class="kpi-label">認為整體體驗「良好」或「優秀」</div>
+      <span class="kpi-flag watch">⚑ 需要留意</span>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-value">62%</div>
+      <div class="kpi-label">認為遊戲時長「略長」或「太長」</div>
+      <span class="kpi-flag watch">⚑ 需要留意</span>
+    </div>
+  </div>
+
+  <!-- PRIORITY ACTIONS -->
+  <h2 class="section-title">優先行動項目</h2>
+  <p class="section-lead">根據玩家意見中反覆出現的問題整理而成，並按提出頻率、是否同時在兩個問卷中獨立出現，以及對信任度／投入感的影響程度排序。</p>
+  <table class="actions" id="actionsTable"></table>
+
+  <!-- GOOGLE SURVEY CHARTS -->
+  <h2 class="section-title">Google 意見調查 — 逐題分析（n = 41）</h2>
+  <p class="section-lead">1 至 5 分評分題：1 分為最低／最不滿意，5 分為最高／最滿意。</p>
+  <div class="chart-grid" id="googleCharts"></div>
+
+  <!-- IN-GAME SURVEY CHARTS -->
+  <h2 class="section-title">遊戲內問卷 — 逐題分析（n = 42）</h2>
+  <p class="section-lead">固定選項題目，按由負面至正面的自然順序排列。</p>
+  <div class="chart-grid" id="ingameCharts"></div>
+
+  <!-- ============ APPENDIX (full detailed report) ============ -->
+  <div class="appendix-divider">— 參考附錄：完整書面分析如下 —</div>
+
+  <div class="prose">
+    <h2 class="appx-h1">附錄 A — 完整意見洞察與建議報告</h2>
+    <p class="lead">此為上方摘要的完整書面版本，包含玩家原文意見（廣東話／中文及英文，按原文引錄）及完整評分數據表，供希望深入了解摘要背後細節的人士參閱。</p>
+
+    <h3 class="appx-h2">關於本報告</h3>
+    <p>兩個數據來源在相近時間收集，從回覆人數及背景資料推斷，兩者玩家群體很大機會高度重疊（均為完成農場遊戲 Beta 版的 LoveXpress 員工／實習生）：</p>
+    <ul>
+      <li><strong>Google 意見調查</strong> ——「UpCareer - Feedback Survey」，41 份回覆，於 2026 年 8 月 3 日匯出。為一份簡短的離場問卷，涵蓋 1 至 5 分滿意度評分、多選「最吸引部分」題目，以及一個開放式意見欄（23 則回覆）。</li>
+      <li><strong>遊戲內問卷</strong> ——「05-surveydata」，42 份回覆，記錄為遊戲內的決策數據。涵蓋內容份量、時長、題目清晰度、自我強項認知、對工作的信心、推薦意願、情境相關度、整體評價，以及兩題開放式提問（「最喜歡哪部分」及「有何可改善」，分別有 23 及 25 則文字回覆）。</li>
+    </ul>
+    <p>如某個主題在兩個數據來源中<strong>獨立</strong>出現，下文會特別標示——兩個設計方式完全不同、透過不同介面作答（網頁表格 vs. 遊戲內）的問卷竟然指出同一個問題，是這份數據中最有力的證據。</p>
+
+    <h3 class="appx-h2">受訪者背景資料（Google 問卷，n=41）</h3>
+    <table>
+      <tr><th>職業狀態</th><th>人數</th><th>佔受訪者比例</th></tr>
+      <tr><td>全職員工</td><td>17</td><td>41.5%</td></tr>
+      <tr><td>兼職員工</td><td>14</td><td>34.1%</td></tr>
+      <tr><td>實習生</td><td>10</td><td>24.4%</td></tr>
+      <tr><td>學生</td><td>0</td><td>0.0%</td></tr>
+    </table>
+    <p style="color:var(--text-muted); font-size:12.5px; margin-top:-8px;">沒有受訪者屬於學生身份——此群組全部為在職員工或實習生，與 LoveXpress 職場 Beta 測試的背景相符，而非一般學生群體。</p>
+
+    <h3 class="appx-h2">成效良好的地方</h3>
+    <p><strong>1. 核心模擬體驗表現理想。</strong> 92.9% 的遊戲內受訪者認為情境「非常相關」（50%）或「有些相關」（42.9%）於實際工作情況。90.5% 表示遊戲有助了解該工作職責——Google 問卷結果相近，80.5% 對「了解工作職責」評分達 4 分或以上（滿分 5 分）。大部分玩家的工作信心均有提升：69% 表示遊戲後感到「稍為更有信心」或「非常有信心」，僅 4.8% 表示信心減少。</p>
+    <p><strong>2. 情境決策與職位介紹是最能吸引玩家的內容。</strong> 兩個問卷結果一致：遊戲內問卷的多選「最吸引部分」題目中，情境決策題目（52.4%）及工作職位介紹（50%）排名最高，其後為影片內容（45.2%）及最終職業報告（40.5%）。Google 問卷結果排名相同，決策題目與職位介紹並列首位（58.5%），影片 43.9%，最終報告 46.3%。</p>
+    <p><strong>3. 玩家願意推薦此遊戲。</strong> 74% 的遊戲內受訪者表示「一定會」（26.2%）或「可能會」（47.6%）推薦此遊戲，57.1% 認為遊戲有助認清自己的強項（另有 33.3% 表示「不確定」而非負面）。色彩搭配方面亦偏向正面（78% 表示喜歡），63.5% 的受訪者對文字易讀度評分達 4 分或以上。</p>
+
+    <h3 class="appx-h2">玩家遇到的困難</h3>
+    <p><strong>1. 遊戲時長與節奏——兩個問卷均獨立提出。</strong> 此為數據中最一致的意見。61.9%（42 人中有 26 人）認為遊戲「略長」或「太長」，只有 2.4% 認為偏短。Google 問卷的節奏題目結果亦偏向「慢」的一端（最低兩個評分佔 36.6%，最高兩個評分僅佔 14.6%）。兩個問卷的開放式意見均不約而同提到這一點：「可以縮減時間的長度」（遊戲內）、「duration is too long」（遊戲內，英文）、「It was too slow for me」（Google），以及特別值得留意的一則：「覺得對 sen 青年嚟說，時間可能會長了些少」（Google）——考慮到 SEN 學員是 UpCareer 的核心對象之一，這點值得重視。另外，31% 的遊戲內受訪者亦認為內容「略嫌」或「遠遠」過多，有幾則意見要求減少文字、增加語音旁白。</p>
+    <p><strong>2. 反覆出現的技術／使用體驗問題——同樣獲兩個問卷交叉印證。</strong> 這些屬於可重現的具體問題，而非單純意見：</p>
+    <ul>
+      <li><strong>突然重新載入／進度遺失</strong> ——「過程中，有時會突然重新加載，再彈回遊戲」（遊戲內）與「有幾次往下頁嘅時候會重新加載，入返遊戲嘅時候會去返前幾頁」（Google）獨立描述了同一個問題：中途重新載入會將玩家彈返去幾個畫面之前。</li>
+      <li><strong>畫面方向鎖定</strong> ——「遊戲畫面轉向功能唔穩定，有時想轉直屏都鎖死橫向……希望可以自由切換直橫屏，再加埋全螢幕模式」與「用手機做嘅話，畫面有時打直有時強制打橫」——手機直向／橫向切換不穩定，亦沒有全螢幕選項。</li>
+      <li><strong>沒有辦法返回修改答案</strong> ——三位玩家獨立提出：「建議在遊戲加入「返回」功能，以便重回修改答案」、「如答錯問題未能返回再答或參看」（Google），與「錯了答案可以返回再答就好」（遊戲內）。</li>
+      <li><strong>排序題拖曳選項</strong> ——「填排序題拖動選項調次序嗰時候，成個網頁畫面會一齊郁，操作唔太順手」——拖曳調整順序時整個網頁會一齊滾動。</li>
+      <li><strong>決策畫面音效問題</strong> ——「In decision part, audio is not according to the mouse on?」，以及某條影片聲量突然變得非常大：「魚菜共生嗰部分嘅片，聲音突然間變得好嘈，同其他部分相比非常突兀」（遊戲內）——魚菜共生那段影片明顯比其他部分嘈得多。</li>
+    </ul>
+    <p><strong>3. 旁白與音效質素。</strong> 除了上述音量突增的問題外，亦有玩家批評旁白本身：「AI/電腦聲音直板不自然，而且不便於理解，建議錄真人聲音」與「VO is quite boring (like a robort [sic])」，另有意見要求統一音量（「建議統一遊戲影片介紹與旁白/角色的音量」），亦有反映旁白次序與畫面不同步（「選擇答案時,語音旁白與實際畫面上的順序不一」）。</p>
+    <p><strong>4. 視覺設計與品牌一致性。</strong> 視覺吸引力是眾多評分中最弱一項：只有 48.8% 評分達 4 分或以上，46.3% 為中立評價。色彩搭配以 78%／22% 分佈——尚算可接受，但反對意見相當具體：背景圖像與企業形象不符（「背景圖可以用純色 更加配合整體公司branding而不是圖像，有點不太配合」）、Green Skies 的標誌未更新、登入頁面的標誌不穩定，登入頁面設計亦可以更簡潔。有受訪者直接指出：「UI could be more attractive.」</p>
+    <p><strong>5. 題目與答案選項的清晰度。</strong> 部分題目在要求作答前，未能清楚表達想問的內容（「有些問題沒有清楚表達你想問既問題便需選擇答案」與「有啲問題冇清楚表達你想問既問題」，遊戲內）。另有兩位玩家獨立指出，職位偏好題目缺少「以上皆不適合」的選項。亦有受訪者建議在最後「邊個崗位最適合你」的題目中重新加入崗位介紹，因為到了那題玩家可能已經不記得各崗位的內容。</p>
+    <p><strong>6. 細節優化項目。</strong> 遊戲角色名稱「Winki／Winky」拼寫不一致——兩個問卷均獨立指出。只需簡單搵字取代即可修正。</p>
+
+    <h3 class="appx-h2">優先建議（完整版）</h3>
+    <p><strong>快速可行項目（技術修復／設定調整，毋須重新製作內容）：</strong> 修復遊戲中途重新載入／進度遺失問題；修復手機畫面方向鎖定問題並加入全螢幕選項；修復排序題拖曳時整頁一齊滾動的問題；統一所有影片／旁白音量並檢查音效與滑鼠操作不同步的問題；加入「返回／修改上一題答案」功能；修正「Winki／Winky」拼寫並更新過時的 Green Skies 標誌。</p>
+    <p><strong>中期項目（內容與結構）：</strong> 縮短整體時長／精簡文字內容；在職位偏好題目中加入「以上皆不適合」選項；在最後的崗位配對題目中重新加入崗位介紹；透過小型可用性測試檢視被指模糊的題目字眼；以真人聲音重新錄製旁白。</p>
+    <p><strong>長期項目（設計與投入感）：</strong> 為視覺形象進行整體設計優化（採用符合品牌形象的純色背景、簡化登入頁面、穩定標誌顯示）；持續強化情境決策題目與職位介紹這兩項已被證實最能吸引玩家的內容；在不進一步延長遊戲時長的前提下，探索加入更多互動環節；持續追蹤每次版本更新後的推薦意願與整體評分，作為領先指標。</p>
+
+    <h3 class="appx-h2">附錄 B — 完整評分分佈</h3>
+    <p style="font-weight:600; margin-bottom:4px;">Google 意見調查（n=41）</p>
+    <table>
+      <tr><th>題目（1=低，5=高）</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+      <tr><td>整體遊戲時長</td><td>1（2.4%）</td><td>1（2.4%）</td><td>16（39.0%）</td><td>12（29.3%）</td><td>11（26.8%）</td></tr>
+      <tr><td>遊戲劇情／節奏感覺</td><td>2（4.9%）</td><td>13（31.7%）</td><td>20（48.8%）</td><td>5（12.2%）</td><td>1（2.4%）</td></tr>
+      <tr><td>對了解工作職責的幫助</td><td>0（0%）</td><td>0（0%）</td><td>8（19.5%）</td><td>18（43.9%）</td><td>15（36.6%）</td></tr>
+      <tr><td>選項與決策清晰度</td><td>0（0%）</td><td>2（4.9%）</td><td>8（19.5%）</td><td>19（46.3%）</td><td>12（29.3%）</td></tr>
+      <tr><td>整體視覺吸引力</td><td>0（0%）</td><td>2（4.9%）</td><td>19（46.3%）</td><td>13（31.7%）</td><td>7（17.1%）</td></tr>
+      <tr><td>文字易讀度</td><td>0（0%）</td><td>3（7.3%）</td><td>12（29.3%）</td><td>17（41.5%）</td><td>9（22.0%）</td></tr>
+      <tr><td>按鈕／表單反應符合預期程度</td><td>1（2.4%）</td><td>6（14.6%）</td><td>10（24.4%）</td><td>15（36.6%）</td><td>9（22.0%）</td></tr>
+    </table>
+    <p style="color:var(--text-muted); font-size:12.5px; margin-top:-8px;">色彩搭配：78%「喜歡」，22%「不喜歡」。最吸引部分（多選）：決策題目 58.5%，職位介紹 58.5%，最終報告 46.3%，影片 43.9%。共收到 23 則開放式文字意見。</p>
+
+    <p style="font-weight:600; margin-bottom:4px; margin-top:18px;">遊戲內問卷（05-surveydata，除特別標明外 n=42）</p>
+    <table>
+      <tr><th>題目</th><th>分佈</th></tr>
+      <tr><td>遊戲內容份量</td><td>剛剛好 66.7% · 略嫌過多 28.6% · 遠遠過多 2.4% · 略嫌不足 2.4%</td></tr>
+      <tr><td>遊戲時長</td><td>略長 40.5% · 剛剛好 35.7% · 太長 21.4% · 略短 2.4%</td></tr>
+      <tr><td>題目清晰度</td><td>大致清晰 52.4% · 非常清晰 33.3% · 有時令人困惑 9.5% · 經常令人困惑 4.8%</td></tr>
+      <tr><td>認清自己的強項</td><td>有 57.1% · 不確定 33.3% · 沒有 9.5%</td></tr>
+      <tr><td>遊戲後對工作的信心</td><td>稍為更有信心 45.2% · 沒有改變 26.2% · 非常有信心 23.8% · 信心減少 4.8%</td></tr>
+      <tr><td>最吸引部分（多選）</td><td>決策題目 52.4% · 職位介紹 50.0% · 影片內容 45.2% · 最終職業報告 40.5%</td></tr>
+      <tr><td>是否會推薦此遊戲</td><td>可能會 47.6% · 一定會 26.2% · 應該不會 21.4% · 一定不會 4.8%</td></tr>
+      <tr><td>情境與實際工作的相關度</td><td>非常相關 50.0% · 有些相關 42.9% · 不太相關 4.8% · 完全不相關 2.4%</td></tr>
+      <tr><td>整體評價</td><td>正常符合預期 31.0% · 良好 26.2% · 還可以 21.4% · 不太理想 11.9% · 優秀 9.5%</td></tr>
+      <tr><td>對了解工作職責的幫助</td><td>有點幫助 50.0% · 非常有幫助 40.5% · 幫助不大 4.8% · 完全沒有幫助 4.8%</td></tr>
+      <tr><td>完成後報告跟進（n=24 名完成者）</td><td>「好的，謝謝」54.2% ·「不需要再次下載」37.5% ·「Yes, please [重新發送]」8.3%</td></tr>
+    </table>
+    <p style="color:var(--text-muted); font-size:12.5px;">開放式問題：「最喜歡哪部分？」（23 則回覆）及「有何可改善？」（25 則回覆）——兩者主題已整合至上文各節。</p>
+  </div>
+
+  <footer class="report-footer">Farm Game 玩家意見反饋 · Google 問卷「User Feedback 20260731」+ 遊戲內問卷「05-surveydata」· 報告日期 2026 年 8 月 3 日</footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const tooltip = document.getElementById('tooltip');
+function showTip(e, text) {
+  tooltip.textContent = text;
+  tooltip.style.opacity = 1;
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top = (e.clientY + 14) + 'px';
+}
+function hideTip() { tooltip.style.opacity = 0; }
+
+function buildStackChart(container, cfg) {
+  const fig = document.createElement('figure');
+  fig.className = 'chart-card' + (cfg.wide ? ' wide' : '');
+
+  const title = document.createElement('div');
+  title.className = 'chart-title';
+  title.textContent = cfg.title;
+  fig.appendChild(title);
+
+  const nline = document.createElement('div');
+  nline.className = 'chart-n';
+  nline.textContent = 'n = ' + cfg.n;
+  fig.appendChild(nline);
+
+  const bar = document.createElement('div');
+  bar.className = 'stackbar';
+  cfg.cats.forEach(cat => {
+    if (cat.p <= 0) return;
+    const seg = document.createElement('div');
+    seg.className = 'seg seg-' + cat.c;
+    seg.style.width = cat.p + '%';
+    seg.addEventListener('mousemove', (e) => showTip(e, cat.l + '：' + cat.p + '%'));
+    seg.addEventListener('mouseleave', hideTip);
+    if (cat.p >= 9) {
+      const lab = document.createElement('span');
+      lab.className = 'seg-label';
+      lab.textContent = cat.p + '%';
+      seg.appendChild(lab);
+    }
+    bar.appendChild(seg);
+  });
+  fig.appendChild(bar);
+
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  cfg.cats.forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = '<span class="swatch seg-' + cat.c + '"></span>' + cat.l + '（' + cat.p + '%）';
+    legend.appendChild(item);
+  });
+  fig.appendChild(legend);
+
+  const det = document.createElement('details');
+  det.className = 'tbl-toggle';
+  const sum = document.createElement('summary');
+  sum.textContent = '查看數據表';
+  det.appendChild(sum);
+  const tbl = document.createElement('table');
+  cfg.cats.forEach(cat => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + cat.l + '</td><td>' + cat.p + '%</td>';
+    tbl.appendChild(tr);
+  });
+  det.appendChild(tbl);
+  fig.appendChild(det);
+
+  container.appendChild(fig);
+}
+
+function buildMagChart(container, cfg) {
+  const fig = document.createElement('figure');
+  fig.className = 'chart-card wide';
+  const title = document.createElement('div');
+  title.className = 'chart-title';
+  title.textContent = cfg.title;
+  fig.appendChild(title);
+  const nline = document.createElement('div');
+  nline.className = 'chart-n';
+  nline.textContent = 'n = ' + cfg.n + ' · 可多選，總和超過 100%';
+  fig.appendChild(nline);
+
+  const sorted = [...cfg.cats].sort((a,b) => b.p - a.p);
+  const max = Math.max(...sorted.map(c => c.p));
+  sorted.forEach(cat => {
+    const row = document.createElement('div');
+    row.className = 'magbar-row';
+    const lab = document.createElement('div');
+    lab.className = 'magbar-label';
+    lab.textContent = cat.l;
+    const track = document.createElement('div');
+    track.className = 'magbar-track';
+    const fill = document.createElement('div');
+    fill.className = 'magbar-fill';
+    fill.style.width = (cat.p / max * 100) + '%';
+    fill.addEventListener('mousemove', (e) => showTip(e, cat.l + '：' + cat.p + '%'));
+    fill.addEventListener('mouseleave', hideTip);
+    track.appendChild(fill);
+    const val = document.createElement('div');
+    val.className = 'magbar-val';
+    val.textContent = cat.p + '%';
+    row.appendChild(lab); row.appendChild(track); row.appendChild(val);
+    fig.appendChild(row);
+  });
+  container.appendChild(fig);
+}
+
+// ---------------- Google 問卷圖表設定 ----------------
+const googleCharts = [
+  { title:'整體遊戲時長', n:41, cats:[
+    {l:'1', p:2.4, c:'neg2'},{l:'2', p:2.4, c:'neg1'},{l:'3', p:39.0, c:'neu'},{l:'4', p:29.3, c:'pos1'},{l:'5', p:26.8, c:'pos2'}
+  ]},
+  { title:'遊戲劇情與內容的節奏感覺', n:41, cats:[
+    {l:'1', p:4.9, c:'neg2'},{l:'2', p:31.7, c:'neg1'},{l:'3', p:48.8, c:'neu'},{l:'4', p:12.2, c:'pos1'},{l:'5', p:2.4, c:'pos2'}
+  ]},
+  { title:'遊戲對了解該工作職責的幫助', n:41, cats:[
+    {l:'1', p:0, c:'neg2'},{l:'2', p:0, c:'neg1'},{l:'3', p:19.5, c:'neu'},{l:'4', p:43.9, c:'pos1'},{l:'5', p:36.6, c:'pos2'}
+  ]},
+  { title:'遊戲中的選項與決策問題是否清晰', n:41, cats:[
+    {l:'1', p:0, c:'neg2'},{l:'2', p:4.9, c:'neg1'},{l:'3', p:19.5, c:'neu'},{l:'4', p:46.3, c:'pos1'},{l:'5', p:29.3, c:'pos2'}
+  ]},
+  { title:'遊戲整體視覺外觀與美感', n:41, cats:[
+    {l:'1', p:0, c:'neg2'},{l:'2', p:4.9, c:'neg1'},{l:'3', p:46.3, c:'neu'},{l:'4', p:31.7, c:'pos1'},{l:'5', p:17.1, c:'pos2'}
+  ]},
+  { title:'遊戲文字易讀度（字體、大小、對比）', n:41, cats:[
+    {l:'1', p:0, c:'neg2'},{l:'2', p:7.3, c:'neg1'},{l:'3', p:29.3, c:'neu'},{l:'4', p:41.5, c:'pos1'},{l:'5', p:22.0, c:'pos2'}
+  ]},
+  { title:'按鈕／表單反應是否符合預期', n:41, cats:[
+    {l:'1', p:2.4, c:'neg2'},{l:'2', p:14.6, c:'neg1'},{l:'3', p:24.4, c:'neu'},{l:'4', p:36.6, c:'pos1'},{l:'5', p:22.0, c:'pos2'}
+  ]},
+  { title:'是否喜歡目前遊戲的色彩搭配', n:41, cats:[
+    {l:'不喜歡', p:22.0, c:'neg2'},{l:'喜歡', p:78.0, c:'pos2'}
+  ]},
+  { title:'受訪者目前的身份／職業狀態', n:41, cats:[
+    {l:'全職', p:41.5, c:'catb'},{l:'兼職', p:34.1, c:'cato'},{l:'實習生', p:24.4, c:'cata'}
+  ]},
+];
+const googleMagChart = { title:'遊戲中哪些部分最吸引人？（可多選）', n:41, cats:[
+  {l:'決策問答', p:58.5},{l:'工作職責介紹', p:58.5},{l:'報告', p:46.3},{l:'影片', p:43.9}
+]};
+
+// ---------------- 遊戲內問卷圖表設定 ----------------
+const ingameCharts = [
+  { title:'遊戲內容份量', n:42, cats:[
+    {l:'遠遠過多', p:2.4, c:'neg2'},{l:'略嫌過多', p:28.6, c:'neg1'},{l:'剛剛好', p:66.7, c:'pos2'},{l:'略嫌不足', p:2.4, c:'neg1'}
+  ]},
+  { title:'遊戲時長', n:42, cats:[
+    {l:'太長', p:21.4, c:'neg2'},{l:'略長', p:40.5, c:'neg1'},{l:'剛剛好', p:35.7, c:'pos2'},{l:'略短', p:2.4, c:'neg1'}
+  ]},
+  { title:'題目清晰程度', n:42, cats:[
+    {l:'經常令人困惑', p:4.8, c:'neg2'},{l:'有時令人困惑', p:9.5, c:'neg1'},{l:'大致清晰', p:52.4, c:'pos1'},{l:'非常清晰', p:33.3, c:'pos2'}
+  ]},
+  { title:'能否認清自己的強項', n:42, cats:[
+    {l:'沒有', p:9.5, c:'neg2'},{l:'不確定', p:33.3, c:'neu'},{l:'有', p:57.1, c:'pos2'}
+  ]},
+  { title:'遊戲後對從事該工作的信心', n:42, cats:[
+    {l:'信心減少', p:4.8, c:'neg2'},{l:'沒有改變', p:26.2, c:'neu'},{l:'稍為更有信心', p:45.2, c:'pos1'},{l:'非常有信心', p:23.8, c:'pos2'}
+  ]},
+  { title:'是否會推薦此遊戲', n:42, cats:[
+    {l:'一定不會', p:4.8, c:'neg2'},{l:'應該不會', p:21.4, c:'neg1'},{l:'可能會', p:47.6, c:'pos1'},{l:'一定會', p:26.2, c:'pos2'}
+  ]},
+  { title:'情境與實際工作的相關程度', n:42, cats:[
+    {l:'完全不相關', p:2.4, c:'neg2'},{l:'不太相關', p:4.8, c:'neg1'},{l:'有些相關', p:42.9, c:'pos1'},{l:'非常相關', p:50.0, c:'pos2'}
+  ]},
+  { title:'整體評價', n:42, cats:[
+    {l:'不太理想', p:11.9, c:'neg2'},{l:'還可以', p:21.4, c:'neg1'},{l:'正常符合預期', p:31.0, c:'neu'},{l:'良好', p:26.2, c:'pos1'},{l:'優秀', p:9.5, c:'pos2'}
+  ]},
+  { title:'對了解工作職責的幫助', n:42, cats:[
+    {l:'完全沒有幫助', p:4.8, c:'neg2'},{l:'幫助不大', p:4.8, c:'neg1'},{l:'有點幫助', p:50.0, c:'pos1'},{l:'非常有幫助', p:40.5, c:'pos2'}
+  ]},
+];
+const ingameMagChart = { title:'遊戲中哪些部分最吸引人？（可多選）', n:42, cats:[
+  {l:'情境決策題目', p:52.4},{l:'工作職位介紹', p:50.0},{l:'影片內容', p:45.2},{l:'最終職業報告', p:40.5}
+]};
+
+const gWrap = document.getElementById('googleCharts');
+googleCharts.forEach(cfg => buildStackChart(gWrap, cfg));
+buildMagChart(gWrap, googleMagChart);
+
+const iWrap = document.getElementById('ingameCharts');
+ingameCharts.forEach(cfg => buildStackChart(iWrap, cfg));
+buildMagChart(iWrap, ingameMagChart);
+
+// ---------------- 優先行動項目 ----------------
+const actions = [
+  { p:'高', item:'修復遊戲中途重新載入／進度遺失的問題', evid:'兩個問卷均有不同玩家獨立反映此問題，直接影響玩家對遊戲的信任（「我的進度會被保存嗎？」）。', src:'Google + 遊戲內' },
+  { p:'高', item:'修復手機畫面方向鎖定問題，並加入全螢幕選項', evid:'屬可重現的技術問題，並非個人偏好——直向畫面被強制轉為橫向。', src:'Google（2 則意見）' },
+  { p:'高', item:'加入「返回／修改上一題答案」功能', evid:'兩個問卷合共有三位玩家獨立提出此要求。', src:'Google + 遊戲內' },
+  { p:'高', item:'統一影片／旁白音量，並檢查決策畫面音效與滑鼠操作不同步的問題', evid:'魚菜共生部分的影片被特別點名指出聲量突然變得非常大，與其他部分不一致。', src:'遊戲內 + Google' },
+  { p:'中', item:'縮短整體遊戲時長／精簡文字內容', evid:'62% 遊戲內玩家認為時長「略長」或「太長」；亦有意見特別提到 SEN 學員可能需要較短時長。', src:'Google + 遊戲內' },
+  { p:'中', item:'在職位偏好題目中加入「以上皆不適合」選項', evid:'有兩位玩家表示對某些職位不感興趣，但沒有合適選項可選。', src:'Google + 遊戲內' },
+  { p:'中', item:'在最後「哪個崗位最適合你」的題目選項中重新加入職位介紹', evid:'玩家去到最後一題時，可能已經忘記各崗位的具體內容。', src:'Google' },
+  { p:'中', item:'以真人聲音（或較自然的 AI 聲音）重新錄製旁白', evid:'意見指旁白「不自然」、「不容易理解」，並形容為「像機械人咁悶」。', src:'Google（2 則意見）' },
+  { p:'中', item:'修復排序題拖曳選項時整頁畫面一齊移動的問題', evid:'拖曳調整順序時網頁會一併滾動，操作不順暢。', src:'Google' },
+  { p:'低', item:'修正「Winki／Winky」拼寫不一致，並更新過時的 Green Skies 標誌', evid:'屬外觀小問題，但兩個問卷均獨立提出。', src:'Google + 遊戲內' },
+  { p:'低', item:'為視覺設計進行整體優化（背景、登入頁面、標誌穩定性）', evid:'視覺吸引力是眾多評分中最弱的一項（僅 48.8% 正面評價）；意見要求採用符合品牌形象的純色背景及更簡潔的登入頁面。', src:'Google' },
+  { p:'低', item:'探索加入更多互動環節，但需與時長考量取得平衡', evid:'有玩家要求增加互動元素，惟不應進一步延長本已偏長的遊戲時間。', src:'遊戲內 + Google' },
+];
+const prioRank = { '高':0, '中':1, '低':2 };
+const prioClass = { '高':'high', '中':'med', '低':'low' };
+actions.sort((a,b) => prioRank[a.p]-prioRank[b.p]);
+const tbl = document.getElementById('actionsTable');
+tbl.innerHTML = '<tr><th style="width:60px;">優先程度</th><th style="width:32%;">行動項目</th><th>為何重要</th><th style="width:130px;">資料來源</th></tr>' +
+  actions.map(a => `<tr>
+    <td><span class="prio-badge prio-${prioClass[a.p]}">${a.p}</span></td>
+    <td class="action-item">${a.item}</td>
+    <td class="action-evidence">${a.evid}</td>
+    <td class="action-source">${a.src}</td>
+  </tr>`).join('');
+
+// ---------------- theme toggle ----------------
+const btn = document.getElementById('themeToggle');
+let dark = false;
+btn.addEventListener('click', () => {
+  dark = !dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  btn.textContent = dark ? '☀️ 淺色模式' : '🌙 深色模式';
+});
+</script>
+</body>
+</html>
